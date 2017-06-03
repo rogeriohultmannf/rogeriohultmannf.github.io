@@ -1,0 +1,127 @@
+---
+title: "Regressão Multivariada Clássica e Regressão Logística"
+subtitle: "Utilizando o pacote *car*"
+author: "Rogério Hultmann (GRR20137589), Adriane Machado (GRR20149152) e Rodrigo Paifer (GRR????????)"
+date: "12 de junho de 2017"
+csl: ABNT_UFPR_2011.csl
+bibliography: refs.bib
+output: pdf_document
+---
+
+# Introdução
+
+O pacote "car" @fox2016package é um pacote do R @RCran, que é uma linguagem para manipulação de dados e análises estatísticas, @landeiro2011introduccao. Fornece muitas funções que são aplicadas a um modelo de regressão ajustado, inclusive para dados de medidas repetidas.
+
+# Material e Métodos
+
+O pacote "car" contém funções e conjuntos de dados associados ao livro An R Compation to Applied Regression, @fox2010r.  Que por sua vez, trata de fornecer uma ampla introdução ao R, no contexto de análise de regressão aplicada.  
+  
+Dentre a ampla aplicação do pacote, temos os modelos de Regressão multivariada clássica e regressão logística.  O modelo de regressão logística é similar ao modelo de regressão linear, porém neste a variável resposta é binária, portanto, assume apenas os valores de sucesso e fracasso.  Outra aplicabilidade é o modelo regressão multivariada clássica, que constrói o modelo considerando as correlações @classicregress.
+
+Para aplicação dos dois modelos, utilizaremos os bancos de dados "Mroz" e "OBrienKaiser":
+  
+## Banco de dados
+
+###Mroz
+Este data frame é composto por 753 mulheres casadas, nas quais foram observadas as seguintes variáveis:
+
+* lfp = Participação no mercado de trabalho
+* k5 = Número de filhos de 5 anos ou menos.
+* k618 = Número de filhos de 6 a 18 anos.
+* age = anos
+* wc = Esposa fez faculdade
+* hc = Marido fez faculdade
+* lwg = O salário esperado, para as mulheres que trabalham, o salário real e para as mulheres que não trabalham, um valor estipulado baseado na regressão de lwg nas outras variáveis.
+* inc = Rendimento familiar exceto rendimento da esposa
+
+A seguir, uma parte dos dados para visualização da composição do *data frame*
+
+```{r, message=FALSE, warning=FALSE}
+require("car")
+head(Mroz, n=4L)
+```
+
+
+###Iris
+
+Este data frame é composto por dados imaginários em que 16 sujeitos do sexo feminino e masculino, nos quais foram observadas as seguintes variáveis:
+
+* *treatment* = Tratamento A ou B
+* *gender* = gênero
+* *pre.1* = Pré-teste, hora 1
+* *pre.2* = Pré-teste, hora 2
+* *pre.3* = Pré-teste, hora 3
+* *pre.4* = Pré-teste, hora 4
+* *pre.5* = Pré-teste, hora 5
+* *post.1* = Pós-teste, hora 1
+* *post.2* = Pós-teste, hora 2
+* *post.3* = Pós-teste, hora 3
+* *post.4* = Pós-teste, hora 4
+* *post.5* = Pós-teste, hora 5
+* *fup.1* = Acompanhamento, hora 1
+* *fup.2* = Acompanhamento, hora 2
+* *fup.3* = Acompanhamento, hora 3
+* *fup.4* = Acompanhamento, hora 4
+* *fup.5* = Acompanhamento, hora 5
+
+A seguir, uma parte dos dados para visualização da composição do *data frame*
+
+```{r, message=FALSE, warning=FALSE}
+require("car")
+head(iris, n=4L)
+```
+
+# Aplicações
+
+## Regressão Logística
+
+A seguinte análise será realizada com o banco de dados **Mroz**. Será ajustado um modelo linear não generalizado através da função *glm* do **R**, onde os principais argumentos da função são:
+
+* *formula* = a definição do modelo
+* *family* = a distribuição assumida pela variável resposta com
+a função de ligação a ser usada
+
+\pagebreak
+
+```{r}
+m1 <- glm(lfp ~ ., family=binomial, data=Mroz)
+summary(m1)
+```
+
+Como podemos observar as variáveis k618 e hcyes, são insignificantes para na contribuição da variável lfp. Ou seja,a participação da mulher no mercado de trabalho não depende do número de filhos de 6 a 18 anos e o do marido ter feito faculdade.
+
+## Regressão multivariada clássica
+
+Os modelos lineares multivariados são ajustados no R com a função **lm**. O procedimento é simples: o lado esquerdo do modelo é a matriz de respostas, com cada coluna representando uma variável de resposta e cada linha uma observação. O lado direito do modelo e todos os outros argumentos para a função são os mesmos que para um modelo linear univariado.
+
+A função **anova** é capaz de manipular os modelos lineares multivariados. Utilizaremos como exemplo os dados **Iris**
+
+A figura a seguir mostram diagramas de dispersão das quatro medidas, mostrando elipses de confiaça de 50% e 95% dentro das espécies.
+
+\pagebreak
+
+```{r, message=FALSE, warning=FALSE}
+scatterplotMatrix(~ Sepal.Length + Sepal.Width + Petal.Length     + Petal.Width | Species, data=iris, smooth=FALSE, reg.line=FALSE, ellipse=TRUE, by.groups=TRUE, diagonal="none")
+```
+
+Boxplots para análise descritiva:
+```{r}
+ par(mfrow=c(2, 2))
+for (response in c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"))
+Boxplot(iris[, response] ~ Species, data=iris, ylab=response)
+```
+
+Os gráficos apresentados indicam que *versicolor* e *virginica* são mais parecidos um com o outro do que com *setosa*. Além disso, as elipses de confiança sugerem que a suposição de matriz de covariâncias constantes dentro do grupo é problemática. Procedemos então para uma ANOVA para testar a hipótese nula: as médias das quatro respostas são idênticas nas três espécies de íris.
+
+
+```{r}
+mod.iris <- lm(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)~ Species, data=iris)
+anova(mod.iris)
+```
+
+
+A hipótese nula é claramente rejeitada.
+  
+
+#Referências
+
