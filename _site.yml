@@ -1,0 +1,12 @@
+name: "Site"
+output_dir: "."
+output:
+  html_document:
+    theme: journal
+
+navbar:
+  left:
+   - text: "Home"
+     href: index.html
+   - text: "Presentation"
+     href: Presentation.html
